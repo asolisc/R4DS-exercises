@@ -1,0 +1,371 @@
+---
+title: "Data visualization"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis Cancino
+    url: https://www.linkedin.com/in/asolisc/
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+
+    css: "styles.css"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+
+library(ggplot2)
+ggplot2::theme_set(theme_fira())
+```
+
+# 1. Introduction
+
+The `ggplot2` package is one of the most versatile frameworks for data visualization. It implements the **grammar of graphics** - a system for describing and building graphs by using *layers*. This package is one of the 8 *core-tidyverse* packages.
+
+# 2. First Steps
+
+We first start by loading the `tidyverse` meta-package:
+
+```{r}
+library(tidyverse)
+```
+
+Then, we can use the `mpg` tibble, a dataset included in the `ggplot2` package. `mpg`contains observations collected by the US Environmental Protection Agency on 38 models of car.
+
+```{r}
+mpg
+```
+
+```{r, layout = "l-body-outset", fig.asp=0.618}
+mpg %>% 
+  mutate(cyl = as_factor(cyl)) %>% 
+  ggplot(mapping = aes(x = displ, y = hwy, colour = cyl)) +
+  geom_point() +
+  scale_colour_manual(values = amazing_colors)
+```
+
+# 3. Aesthetic Mappings
+
+You can add a third variable, like class, to a two dimensional scatterplot by mapping it to an aesthetic. An aesthetic is a visual property of the objects in your plot.
+
+Since we already use the word "value" to describe data, let's use the word "level" to describe aesthetic properties.
+
+```{r}
+mpg %>%
+  ggplot() +
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+To map an aesthetic to a variable, associate the name of the aesthetic to the name of the variable inside `aes()`. ggplot2 will automatically assign a unique level of the aesthetic (here a unique color) to each unique value of the variable, a process known as scaling.
+
+```{r}
+mpg %>%
+  ggplot() +
+  geom_point(mapping = aes(x = displ, 
+                           y = hwy, 
+                           size = class,
+                           colour = class))
+```
+
+We could also use the `alpha` or `shape` aesthetic:
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(aes(x = displ, 
+                 y = hwy,
+                 alpha = class))
+```
+
+```{r}
+mpg %>% 
+  ggplot(aes(x = displ, y = hwy)) +
+  geom_point(aes(shape = class))
+```
+
+What happened to the SUVs? ggplot2 will only use six shapes at a time. By default, additional groups will go unplotted when you use the shape aesthetic.
+
+It selects a reasonable scale to use with the aesthetic, and it constructs a legend that explains the mapping between levels and values. For x and y aesthetics, ggplot2 does not create a legend, but it creates an axis line with tick marks and a label. The axis line acts as a legend; it explains the mapping between locations and values.
+
+You can also set the aesthetic properties of your geom manually. For example, we can make all of the points in our plot blue:
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = displ, y = hwy), 
+             colour = "dark green")
+```
+
+To set an aesthetic manually, set the aesthetic by name as an argument of your geom function; i.e. it goes outside of `aes()`.
+
+## 3.1 Exercises
+
+1.  What's gone wrong with this code? Why are the points not blue?
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = displ,
+                           y = hwy,
+                           color = "blue"))
+```
+
+The color should be set outside the `aes()` function, i.e. as an argument to the `geom()` function.
+
+2.  Which variables in mpg are categorical? Which variables are continuous? (Hint: type ?mpg to read the documentation for the dataset). How can you see this information when you run `mpg`?
+
+```{r, eval=FALSE}
+# Not run
+help(mpg)
+```
+
+```{r}
+mpg %>% glimpse()
+```
+
+The categorical variables are:
+
+-   `manufacturer`
+
+-   `model`
+
+-   `trans`
+
+-   `drv`
+
+-   `fl`
+
+-   `class`
+
+The numeric variables are:
+
+-   `model`
+
+-   `year`
+
+-   `cyl`
+
+-   `cty`
+
+-   `hwy`
+
+3.  Map a continuous variable to `color`, `size`, and `shape`. How do these aesthetics behave differently for categorical vs. continuous variables?
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(aes(x = displ, y = hwy, color = year))
+```
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(aes(x = displ, y = hwy, size = year))
+```
+
+```{r, eval = F}
+mpg %>% 
+  ggplot() +
+  geom_point(aes(x = displ, y = hwy, shape = year))
+```
+
+The `color`, `shape`, and `size` aesthetics work better with categorical variables. `shape` levels cannot be mapped to a continuous variable.
+
+4.  What happens if you map the same variable to multiple aesthetics?
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(aes(x = displ, 
+                 y = hwy, 
+                 color = class, 
+                 alpha = class))
+```
+
+`ggplot2` maps them all accordingly.
+
+5.  What does the stroke aesthetic do? What shapes does it work with? (Hint: use `?geom_point`).
+
+```{r}
+mpg %>%
+  ggplot() +
+  geom_point(aes(x = displ,
+                 y = hwy,
+                 color = class),
+             stroke = 2,
+             shape = 11)
+```
+
+`stroke` changes the border's width of certain shapes. For example, shapes 11 and 21 work with stroke. `stroke` is not available for all `geom()` functions.
+
+6.  What happens if you map an aesthetic to something other than a variable name, like `aes(colour = displ < 5)`? Note, you'll also need to specify `x` and `y`.
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = displ,
+                           y = hwy,
+                           colour = displ < 5))
+```
+
+## 4. Common Problems
+
+One common problem when creating ggplot2 graphics is to put the `+` in the wrong place: it has to come at the end of the line, not the start. So, for example, the following code is wrong:
+
+```{r wrong-code, eval = FALSE}
+ggplot(data = mpg) 
++ geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+## 5. Facets
+
+Another way to add additional variables, particularly useful for categorical variables, is to split your plot into **facets**: subplots that each display one subset of the data.
+
+### Facet by One Variable
+
+To facet your plot by a single variable, use `facet_wrap()`. The first argument of `facet_wrap()` should be a formula created with `~` followed by a variable name. The variable that you pass to `facet_wrap()` *should be discrete*.
+
+```{r}
+mpg %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+```
+
+### Facet by Two Variables
+
+To facet your plot on the combination of two variables, add `facet_grid()` to your plot call. The first argument of `facet_grid()` is also a formula. This time the formula should contain two variable names separated by a `~`. For example: `x ~ y`. We can facet the `mpg` dataset by `drv` and `cyl`:
+
+```{r}
+mpg %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(drv ~ cyl)
+```
+
+### Facet: Rows Only
+
+If you prefer to not facet in the rows or columns dimension, use a `.` instead of a variable name. Thus, to facet by rows only use: `+ facet_grid(var1 ~ .)`.
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_grid(cyl ~ .)
+```
+
+### Facet: Columns Only
+
+To facet by columns only use: `+ facet_grid(. ~ var1)`.
+
+```{r}
+mpg %>% 
+  ggplot() +
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(. ~ cyl)
+```
+
+## 5.1 Exercises
+
+1.  What happens if you facet on a continuous variable?
+
+```{r}
+mpg %>% 
+  ggplot(aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_grid(year ~ cty)
+```
+
+It either displays too many facets or groups them. This happens because the continuous variable is converted to categorical.
+
+2.  What do the empty cells in plot with `facet_grid(drv ~ cyl)` mean? How do they relate to this plot?
+
+```{r}
+mpg %>% 
+  ggplot(aes(displ, hwy)) +
+  geom_point() +
+  facet_grid(drv ~ cyl)
+```
+
+Empty cells mean that there's no data that meets the criteria for that specific facet. In this example, it means that there are no 4- and 5-cylinder cars with rear-wheel-drive.
+
+3.  What plots does the following code make? What does `.` do?
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(. ~ cyl)
+```
+
+It plots the data into facets according to the variable `drv` and `cyl`, respectively. The `.` argument inside `facet_grid` indicates you're faceting by only one variable.
+
+4.  Take the first faceted plot in this section:
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+```
+
+What are the advantages to using faceting instead of the color aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?
+
+Faceting actually divides the data into panels, so the separation of the categorical variable is more visual and clear. On the other hand, if the *factor* (categorical) variable had too many different categories, faceting wouldn't be feasible, since we would have too many panels and it's no longer practical to visualize. That's were the `color` aesthetic could work a little bit better.
+
+5.  Read `?facet_wrap`. What does `nrow` do? What does `ncol` do? What other options control the layout of the individual panels? Why doesn't facet\_grid() have `nrow` and `ncol` arguments?
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2, dir = "v")
+```
+
+The `nrow` and `ncol` arguments are unnecessary for `facet_grid()` since the number of unique values of the variables specified in the function determines the number of rows and columns.
+
+6.  When using `facet_grid()` you should usually put the variable with more unique levels in the columns. Why?
+
+There will be more space for columns if the plot is laid out horizontally (landscape).
+
+## 6. Geometric Objects
+
+In ggplot2 syntax, there exist different **geoms**. A **geom** is the geometrical object that a plot uses to represent data. To use *geoms* you'll have to use a family of functions specified by: `geom_*()`.
+
+For example, bar charts use `geom_bar`, line charts use `geom_line()`, boxplots use `geom_boxplot()`, and so on. Scatterplots break the trend, as they are called by using the `geom_point()` *geom*.
+
+```{r}
+mpg %>% 
+  ggplot(mapping = aes(x = displ)) +
+  geom_boxplot(
+    fill = amazing_colors[10]) + 
+  scale_y_continuous(
+    limits = c(-2.5,2.5)
+  )
+```
+
+```{r}
+mpg %>% 
+  ggplot(mapping = aes(x = displ)) +
+  geom_bar(fill = amazing_colors[8])
+```
+
+## 7.Statistical Transformations
+
+## 8.Position Adjustments
+
+## 9.Coordinate Systems
+
+## 10.The layered grammar of graphics
