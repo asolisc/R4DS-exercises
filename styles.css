@@ -8,8 +8,6 @@ font-family: 'Zilla Slab', serif;
 */
  
   /* CSS section for fonts */
-  
-  
 
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Fira+Sans+Condensed&family=IBM+Plex+Sans+Condensed&family=Open+Sans&family=Zilla+Slab&display=swap');
 
@@ -54,7 +52,7 @@ code {
  /* color: #096B72; */
   background: #F4F3EE; 
   font-weight: 400;
-  font-size: 0.9em;
+  font-size: 0.8em;
 }
 
 
