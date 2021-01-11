@@ -1,0 +1,308 @@
+---
+title: "11 Data import"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis Cancino
+    url: https://www.linkedin.com/in/asolisc/
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    css: "styles.css"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+# file.show("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+
+library(tidyverse)
+library(here)
+library(glue)
+library(hms)
+
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill="viridis")
+```
+
+# 11.1 Introduction
+
+wdwdw
+
+```{r}
+x
+```
+
+### 11.3.4 Dates, date-times, and times
+
+### Exercises
+
+1.  What are the most important arguments to `locale()`?
+
+```{r}
+parse_date(x = , locale = )
+```
+
+We list the most important ones (and their default) below:
+
+-   `date_names` = "en",
+-   `date_format` = "%AD",
+-   `time_format` = "%AT",
+-   `decimal_mark` = ".",
+-   `grouping_mark` = ",",
+-   `tz` = "UTC",
+-   `encoding` = "UTF-8",
+-   `asciify` = FALSE
+
+2.  What happens if you try and set `decimal_mark` and `grouping_mark` to the same character? What happens to the default value of `grouping_mark` when you set `decimal_mark` to ","? What happens to the default value of `decimal_mark` when you set the `grouping_mark` to "."?
+
+An error is provided when the `decimal_mark` and `grouping_mark` arguments are the same:
+
+```{r}
+locale(decimal_mark = ".", grouping_mark = ".")
+```
+
+We first print the defaults:
+
+```{r}
+locale()
+```
+
+If the `decimal_mark` is set to the `,`, then the `grouping_mark` is changed to `.`.
+
+```{r}
+locale(decimal_mark = ",")
+```
+
+The same happens when the `grouping_mark` is set to `.`:
+
+```{r}
+locale(grouping_mark = ".")
+```
+
+3.  I didn't discuss the `date_format`and `time_format`options to `locale()`. What do they do? Construct an example that shows when they might be useful.
+
+-   `date_format` and `time_format` are the default formats in the `locale()` function. Both are useful when guessing the format of a vector - i.e. when using the `parse_guess()` function. The defaults are useful date and time parses, respectively.
+
+```{r}
+parse_guess('01/31/2013')
+
+parse_guess('17:55:30')
+```
+
+4.  If you live outside the US, create a new locale object that encapsulates the settings for the types of file you read most commonly.
+
+```{r}
+mx_locale <- locale(date_names = "es")
+mx_locale
+
+mx_locale_2 <- locale(date_names = date_names(
+  mon = c(
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre'
+  ),
+  mon_ab = c('ene',
+             'feb',
+             'mar',
+             'abr',
+             'may',
+             'jun',
+             'jul',
+             'ago',
+             'sep',
+             'oct',
+             'nov',
+             'dic'),
+  day = c('domingo',
+          'lunes',
+          'martes',
+          'miércoles',
+          'jueves',
+          'viernes',
+          'sábado'),
+  day_ab = c('dom',
+             'lun',
+             'mar',
+             'mie',
+             'jue',
+             'vie',
+             'sab'),
+  am_pm = c("AM", "PM"), date_name))
+
+mx_locale_2
+
+# Now parse strings as date and datetimes with mx_locale_2
+
+parse_date('feb-05-2020', # no period after 'feb' so using mx_locale_2
+           format =  "%b-%d-%Y",
+           locale = mx_locale_2)
+
+parse_datetime('feb.-05-19-05:10', # period after 'feb', using mx_locale
+               format ="%b-%d-%y-%h:%M",
+               locale = mx_locale)
+```
+
+5.  What's the difference between `read_csv()` and `read_csv2()`?
+
+    `read_csv()` uses `grouping_mark = ","` and `decimal_mark = "."` (like Americans do). On the other hand, `read_csv2()` uses `grouping_mark = "."`, and `decimal_mark = ","` and it separates values with a semicolon: `;`
+
+6.  What are the most common encodings used in Europe? What are the most common encodings used in Asia? Do some googling to find out.
+
+7.  Generate the correct format string to parse each of the following dates and times:
+
+```{r}
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+t1 <- "1705"
+t2 <- "11:15:10.12 PM"
+```
+
+```{r}
+parse_date(d1, format = "%B %d, %Y")
+parse_date(d2, format =  "%Y-%b-%d")
+parse_date(d3, format = "%d-%b-%Y")
+parse_date(d4, format = "%B %d (%Y)")
+parse_time(t1, format = "%H%M")
+parse_time(t2, format = "%H:%M:%OS %p")
+```
+
+## Parsing a file
+
+### Strategy
+
+`readr` uses a heuristic to figure out the type of each column: it reads the first `1,000` rows and uses some (moderately conservative) heuristics to figure out the type of each column. You can emulate this process with a character vector using `guess_parser()`, which returns `readr`'s best guess, and `parse_guess()` which uses that guess to parse the column:
+
+```{r}
+guess_parser('2010-10-01')
+
+guess_parser('15:01')
+
+guess_parser(c('TRUE', 'FALSE'))
+
+guess_parser(c("1", "2", "9"))
+
+guess_parser(c("12,352,561"))
+
+parse_guess('2010-10-10') %>% str()
+```
+
+We can note that if we had an Excel file with negative numbers formatted with `()`, we would get those parsed as `chr` types. Thus, we would have to substitute the `()` to a `-` (negative sign) in order for the `parse_guess` function to correctly parse them as numbers.
+
+```{r}
+parse_guess(c('(24,384)', '283,402'))
+parse_guess(c('-24,384', '283,402')) %>% str()
+```
+
+For Excel parsing, you can use the `readxl` function `read_excel()`. For cell and column types, see [the documentation here](<https://readxl.tidyverse.org/articles/cell-and-column-types.html>)
+
+### Other strategies
+
+```{r}
+challenge2 <- read_csv(file = readr_example("challenge.csv"), 
+                       guess_max = 1001)
+
+challenge2 %>% filter(!is.na(y))
+```
+
+Sometimes it's easier to diagnose problems if you just read in all the columns as character vectors:
+
+```{r}
+cols_spec <- cols(.default = col_character())
+
+challenge2 <- read_csv(file = readr_example("challenge.csv"),
+                       col_types = cols_spec)
+
+challenge2
+```
+
+
+```{r}
+df <- tribble(
+  ~ x,  ~ y,
+  "1", "1.21",
+  "2", "2.32",
+  "3", "4.56"
+)
+
+df
+
+
+df %>% type_convert()
+```
+
+
+The 
+
+
+```{r}
+
+
+```
+
+### Writing to a file
+
+You can write data into disk with `readr`'s functions: `write_csv()` and `write_tsv()` (which will write a tab-separated-values file). The advantage of using these functions is that it will always write the ouput:
+
+1. Using UTF-8 encoding for strings.
+
+2. Saving date-times according to the ISO8601 format.
+
+If you want to export to an Excel file, use the function `write_excel_csv()` which tells Excel that you're using the UTF-8 encoding.
+
+There are 4 important arguments to the `write_*()` functions:
+
+* `x`: the data frame to be saved
+
+* `path`: the path where you will be saving the data.
+
+* `na`: which will specify how missing values will be written.
+
+* `append`: which you have to use if you want to append to an existing file.
+
+The downside of writing to a `.csv` or `.tsv` is that the column specification is lost:
+
+```{r}
+challenge2
+
+write_csv(challenge2, path = here("data", "challenge2.csv"))
+read_csv(here("data", "challenge2.csv"))
+```
+
+
+
+This makes CSVs a little unreliable for caching interim results—you need to recreate the column specification every time you load in. There are three alternatives:
+
+1. The RDS file format (which store a single `R` object).
+2. The `feather` package for storing files in the `feather` format.
+3. The `arrow` package which can store files in the columnar `feather` and `parquet` formats.
+
+```{r}
+library(arrow)
+
+write_parquet(challenge2, here("data", "challenge2.parquet"))
+
+read_parquet(file = here("data", "challenge2.parquet"))
+```
+
