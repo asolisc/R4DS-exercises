@@ -1,0 +1,163 @@
+---
+title: "5 Data Transformation"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis
+    url: alexis.solisc@gmail.com
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    css: "styles.css"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+```
+
+# 5.1 Introduction
+
+This chapter is all about data wrangling.
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(nycflights13)
+```
+
+## 5.2 Filter rows with `filter()`
+
+`filter()` allows you to choose rows based on a set of logical conditions.
+
+```{r}
+FANG %>% 
+  filter(symbol == "FB")
+```
+
+### 5.2.1 Comparisons
+
+```{r}
+sqrt(2) ^ 2 == 2
+1 / 49 * 49 == 1
+```
+
+```{r}
+near(sqrt(2) ^ 2,  2)
+near(1 / 49 * 49, 1)
+```
+
+### 5.2.2 Logical operators
+
+```{r}
+FANG %>% 
+  filter(symbol == "FB" | symbol == "GOOG")
+```
+
+We could also use the `value matching` operator: `%in%` as in: `x %in% y`. This will select every row where `x` is one of the values in `y`.
+
+```{r}
+FANG %>% 
+  filter(symbol %in% c("FB", "GOOG"))
+```
+
+As well as `&`and `|`, R also has `&&` and `||`. Don't use them here! You'll learn when you should use them in conditional execution.
+
+### 5.2.3 Missing values
+
+If you want to determine if a value is missing, use `is.na()`.
+
+`filter()` only includes rows where the condition is TRUE; it excludes both FALSE and NA values. If you want to preserve missing values, ask for them explicitly:
+
+```{r}
+df <- tibble(x = c(1, NA, 3))
+
+df %>% 
+  filter(x > 1)
+
+df %>% 
+  filter(is.na(x) | x > 1)
+```
+
+## 5.2.4 Exercises
+
+1.  Find all flights that:
+
+-   Had an arrival delay of two or more hours.
+
+```{r}
+flights %>% 
+  filter(arr_delay >= 120)
+```
+
+-   Flew to Houston (`IAH` or `HOU`)
+
+```{r}
+flights %>% 
+  filter(dest == "IAH" | dest == "HOU")
+```
+
+Another options we have is to use the *value matching operator* `%in%`
+
+```{r}
+flights %>% 
+  filter(dest %in% c("IAH", "HOU"))
+```
+
+-   Were operated by United, American, or Delta.
+
+We first print the `airlines` tibble to see the names and their abbreviations:
+
+```{r}
+airlines
+```
+
+We see that: DL = Delta Air Lines Inc. ; UA = United Air Lines Inc.; AA = American Airlines Inc.
+
+```{r}
+flights %>% 
+  filter(carrier %in% c("DL", "UA", "AA")) %>% 
+  relocate(carrier, .after = year)
+```
+
+-   Departed in summer (July, August, and September).
+
+```{r}
+flights %>% 
+  filter(month %in% c(7, 8, 9))
+```
+
+-   Arrived more than two hours late, but didn't leave late.
+
+```{r}
+flights %>% 
+  filter(dep_delay <= 0, arr_delay >= 120)
+```
+
+-   Were delayed by at least an hour, but made up over 30 minutes in flight
+
+```{r}
+flights %>% 
+  filter(dep_delay >= 60, dep_delay - arr_delay > 30)
+```
+
+-   Departed between midnight and 6am (inclusive)
+
+```{r}
+flights %>% 
+  filter(dep_time <= 600 | dep_time == 2400)
+```
+
+
+2.  The inf_mr
