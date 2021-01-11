@@ -11,7 +11,7 @@ date: "`r Sys.Date()`"
 output: 
   distill::distill_article:
     toc: true
-
+    toc_float: true
     css: "styles.css"
 editor_options: 
   chunk_output_type: console
@@ -21,13 +21,16 @@ editor_options:
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
-  warning = FALSE)
+  warning = FALSE,
+  layout = "l-body-outset")
 
 source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
 # file.show("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
 
 library(ggplot2)
 
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill="viridis")
 ```
 
 # 1. Introduction
@@ -42,7 +45,7 @@ We first start by loading the `tidyverse` meta-package:
 library(tidyverse)
 ```
 
-Then, we can use the `mpg` tibble, a dataset included in the `ggplot2` package. `mpg`contains observations collected by the US Environmental Protection Agency on 38 models of car.
+Then, we can use the `mpg` tibble, a dataset included in the `ggplot2` package. `mpg` contains observations collected by the US Environmental Protection Agency on 38 models of car.
 
 ```{r}
 mpg
@@ -502,10 +505,6 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
   scale_colour_manual(values = amazing_colors)
 ```
 
-```{r}
-mpg %>% select(class)
-```
-
 ## 6.1 Exercises
 
 1.  What geom would you use to draw a line chart? A boxplot? A histogram? An area chart?
@@ -754,21 +753,41 @@ Another difference is that `geom_col()`'s default *stat* is `stat_identity()`, w
 
 3.  Most geoms and stats come in pairs that are almost always used in concert. Read through the documentation and make a list of all the pairs. What do they have in common?
 
+4.  What variables does `stat_smooth()` compute? What parameters control its behavior?
 
-4. What variables does `stat_smooth()` compute? What parameters control its behavior?
+`stat_smooth()` computes four variables:
 
-`stat_smooth()` computes...
+1.  `y`: predicted value.
+2.  `ymin`: lower pointwise confidence interval around the mean
+3.  `ymax`: upper pointwise confidence interval around the mean
+4.  `se`: standard error
 
-The parameters for `stat_smooth()` are:
+The parameters that control `stat_smooth()` are:
 
+1.  `n`: Number of points at which to evaluate smoother.
+2.  `method`: Smoothing method (function) to use.
+3.  `formula`: Formula to use in smoothing function.
+4.  `se`: Display confidence interval around smooth? `TRUE` is default.
+5.  `span`: Controls the amount of smoothing for the default *loess* smoother. Larger numbers produce smoother lines.
+6.  `fullrange`: Should the fit span the full range of the plot, or just the data?
+7.  `level`: Level of confidence interval to use (0.95 by default).
+
+and others (but less important, such as `na.rm`).
 
 5.  In our proportion bar chart, we need to set `group = 1`. Why? In other words what is the problem with these two graphs?
+
+If `group = 1` is not included, then all the bars in the plot will have the same height, a height of 1. The function `geom_bar()` assumes that the groups are equal to the `x` values... and since the stat computes the counts within each group... the proportion of each group is 100% (or 1).
+
+`group="whatever"` is a "dummy" grouping to override the default behavior, which (here) is to group by `cut` and in general is to group by the x variable. The default for `geom_bar` is to group by the x variable in order to separately count the number of rows in each level of the x variable. For example, here, the default would be for `geom_bar` to return the number of rows with `cut` equal to "Fair", "Good", etc.
+
+However, if we want proportions, then we need to consider all levels of `cut` together. In the second plot, the data are first grouped by `cut`, so each level of `cut` is considered separately. The proportion of Fair in Fair is 100%, as is the proportion of Good in Good, etc. `group=1` (or `group="x"`, etc.) prevents this, so that the proportions of each level of cut will be relative to all levels of cut.
+
+The problem with these two plots is that the proportions are calculated within the groups.
 
 ```{r}
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, y = after_stat(prop)))
 ```
-
 
 ```{r}
 ggplot(data = diamonds) + 
@@ -777,6 +796,31 @@ ggplot(data = diamonds) +
 
 ## 8.Position Adjustments
 
+You can color a bar chart using either the `colour` aesthetic, or, more usefully, `fill`:
+
+```{r}
+diamonds %>% 
+  ggplot() +
+  geom_bar(aes(x = cut, color = cut))
+
+
+diamonds %>% 
+  ggplot() +
+  geom_bar(aes(x = cut, fill = cut))
+```
+
+Note that, in both cases, the variable mapped to `x` is the same mapped to `fill` or `color`. If you map these last aesthetics to a different variable, you get stacked bars:
+
+```{r}
+diamonds %>% 
+  ggplot() +
+  geom_bar(mapping = aes(x = cut, fill = clarity))
+```
+
 ## 9.Coordinate Systems
 
+x
+
 ## 10.The layered grammar of graphics
+
+x
