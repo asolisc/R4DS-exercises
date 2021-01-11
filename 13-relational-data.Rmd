@@ -1,0 +1,61 @@
+---
+title: "13 Relational Data"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis Cancino
+    url: https://www.linkedin.com/in/asolisc/
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_float: true
+    css: "styles.css"
+editor_options:
+  chunk_output_syle: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+# file.show("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+
+library(tidyverse)
+library(here)
+library(glue)
+library(nycflights13)
+
+options(ggplot2.continuous.colour="viridis")
+options(ggplot2.continuous.fill="viridis")
+```
+
+## 13.3 Keys
+
+### 13.3.1 Exercises
+
+1.  Add a surrogate key to `flights`.
+
+2.  Identify the keys in the following datasets
+
+```{r}
+Lahman::Batting %>% as_tibble() %>% glimpse()
+```
+
+```{r}
+ggplot2::diamonds %>% 
+  distinct()
+
+
+ggplot2::diamonds %>% 
+  mutate(diamond_id = row_number()) %>% 
+  filter(diamond_id == 1)
+```
+
+## 13.4 Mutating joins
+
