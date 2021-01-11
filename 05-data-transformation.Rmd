@@ -160,4 +160,21 @@ flights %>%
 ```
 
 
-2.  The inf_mr
+2.  Another useful `dplyr` filtering helper is `between()`. What does it do? Can you use it to simplify the code needed to answer the previous challenges?
+
+`between()` is the equivalent to the `BETWEEN` clause in `SQL`. In `dplyr` it has three main arguments: a numeric vector of values (`x`), a lower boundary (`left`) and an upper boundary (`right`). It returns `TRUE` if the numeric vector falls in the range specified by the boundaries.
+
+Let's use the function to simlify some previous exercises:
+
+- Find flights that departed in summer (July, August, and September)
+
+```{r}
+flights %>%
+  filter(
+    between(x = month, 
+            left = 7, 
+            right = 9)
+    )
+```
+
+
