@@ -164,7 +164,9 @@ flights %>%
 
 `between()` is the equivalent to the `BETWEEN` clause in `SQL`. In `dplyr` it has three main arguments: a numeric vector of values (`x`), a lower boundary (`left`) and an upper boundary (`right`). It returns `TRUE` if the numeric vector falls in the range specified by the boundaries.
 
-Let's use the function to simlify some previous exercises:
+The expression `between(x, left, right)` is equivalent to `x >= left & x <= right`.
+
+Let's use the function to simplify some previous exercises:
 
 - Find flights that departed in summer (July, August, and September)
 
@@ -178,3 +180,39 @@ flights %>%
 ```
 
 
+3. How many flights have a missing `dep_time`? What other variables are missing? What might these rows represent?
+
+```{r}
+flights %>% 
+  filter(is.na(dep_time)) %>% 
+  glimpse()
+```
+
+The `arr_time` and `air_time` variables are also missing. This points to the flights being canceled.
+
+4. Why is `NA ^ 0` not missing? Why is `NA | TRUE` not missing? Why is `FALSE & NA` not missing? Can you figure out the general rule? (`NA * 0` is a tricky counterexample!)
+
+`NA^0` should be equal to 1, given that any value to the power of  zero should yield 1. That is: $x^0 = 1$.
+
+```{r}
+NA^0
+```
+
+`NA | TRUE` should always yield `TRUE` owing to the `OR` logical operator. The `NA` in this case could be either `TRUE` or `FALSE` but both results would give a `TRUE` result in the overall operation.
+
+```{r}
+NA | TRUE
+```
+
+`FALSE & NA` should yield `FALSE` owing to logical reasoning.
+
+In general, the rule is that if the result is known (because it's a universal result), having an `NA` shouldn't affect the result.
+
+```{r}
+NA * 0
+```
+
+
+## 5.3 Arrange rows with `arrange()`
+
+`arrange()` works similarly to `filter()` except that instead of selecting rows, it changes their order.
