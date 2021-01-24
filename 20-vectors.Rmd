@@ -1,0 +1,82 @@
+---
+title: "20 Vectors"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis
+    url: alexis.solisc@gmail.com
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    css: "styles.css"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+library(tidyverse)
+library(usethis)
+```
+
+# 20.3.5 Exercises 
+
+
+
+4. Brainstorm at least four functions that allow you to convert a double to an integer. How do they differ? Be precise.
+
+You could do integer division and return the whole portion. You could use the `round()` function.
+
+
+5. What functions from the `readr` package allow you to turn a string into logical, integer, and double vector?
+
+
+To get all of the `readr`'s functions, we can use the following commands:
+
+```{r}
+ls("package:readr")
+```
+
+
+string into logical:
+`col_logical` and `parse_logical`
+
+string into integer:
+`col_integer` and `parse_integer`
+
+string into double:
+`col_double` and `parse_double`
+
+
+# 20.4 Using atomic vectors 
+
+
+## 20.4.1 Coercion 
+
+Whenever you find yourself using explicit coercion, you should always check whether you can make the fix upstream, so that the vector never had the wrong type in the first place. For example, you may need to tweak your readr `col_types` specification.
+
+
+Implicit coercion happens when you use a vector in a specific context that expects/forces a certain type of vector.
+
+```{r}
+set.seed(2021)
+
+x <- sample(20, 100, replace = T)
+
+# Get a logical vector indicating 
+y <- x > 10
+
+sum(y)
+mean(y)
+```
+

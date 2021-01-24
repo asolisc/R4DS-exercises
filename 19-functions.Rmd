@@ -1,0 +1,96 @@
+---
+title: "19 Functions"
+description: |
+  R for Data Science Book
+author:
+  - name: Alexis Solis
+    url: alexis.solisc@gmail.com
+    # affiliation: Spacely Sprockets
+    # affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    css: "styles.css"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE)
+
+source("D:/01-Data-Science/03-Helper-Scripts/ggplot2_themes.R")
+library(tidyverse)
+library(usethis)
+```
+
+## 19.3.1 Exercises
+
+1. Read the source code for each of the following three functions, puzzle out what they do, and then brainstorm better names.
+
+```{r}
+f1 <- function(string, prefix) {
+  substr(string, 1, nchar(prefix)) == prefix
+}
+```
+
+We see that `f1` checks in the `string` variable wether the first `nchar(prefix)` characters match with the `prefix` string. It should return `TRUE` if true or `FALSE` if false.
+
+
+```{r}
+f3 <- function(x, y) {
+  
+}
+```
+
+
+2. Take a function that you’ve written recently and spend 5 minutes brainstorming a better name for it and its arguments.
+
+We can create a function that extracts all digits from a string.
+
+```{r}
+str_digits <- function(string) {
+  if (!is.character(string)) {
+    ui_stop("You must provide a character string, not any other type.")
+  }
+  
+  
+  if (str_detect(string, "\\d", negate = T)) {
+    ui_info("The selected string has no digits. Returning NULL character vector.")
+    digits <- NULL
+  }
+  
+  digits <- str_extract_all(string, "\\d") %>% 
+    flatten_chr()
+  
+  return(digits)
+}
+```
+
+
+```{r}
+str_digits("iojef893289yjkh289439278")
+```
+
+
+3. Compare and contrast `rnorm()` and `MASS::mvrnorm()`. How could you make them more consistent?
+
+```{r}
+MASS::mvrnorm()
+
+rnorm()
+```
+
+`MASS::mvrnorm()` simulates a multivariate Normal distribution.
+
+
+4. Make a case for why norm_r(), norm_d() etc would be better than rnorm(), dnorm(). Make a case for the opposite.
+
+
+# 19.4 Conditional execution
+
